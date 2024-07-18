@@ -5,21 +5,28 @@ using UnityEngine.UI;
 
 public class UILoad : MonoBehaviour
 {
-    public TMP_Dropdown hoursDropdown;
-    public TMP_Dropdown minutesDropdown;
-    public TMP_Dropdown secondsDropdown;
-    public TMP_Dropdown detailsDropdown;
+    public TMP_Dropdown startHoursDropdown;
+    public TMP_Dropdown startMinutesDropdown;
+    public TMP_Dropdown startSecondsDropdown;
+    public TMP_Dropdown endHoursDropdown;
+    public TMP_Dropdown endMinutesDropdown;
+    public TMP_Dropdown endSecondsDropdown;
+    public TMP_Dropdown slotNumbersDropdown;
     public Button filterButton;
     public ApiRequest parkingSlotManager;
 
-    private List<ApiRequest.ParkingSlot> filteredSlots;
-
     void Start()
     {
-        // Initialize dropdown options
-        InitializeDropdown(hoursDropdown, 0, 23);
-        InitializeDropdown(minutesDropdown, 0, 59);
-        InitializeDropdown(secondsDropdown, 0, 59);
+        InitializeDropdown(startHoursDropdown, GenerateNumericLabels(0, 23), "Hours");
+        InitializeDropdown(startMinutesDropdown, GenerateNumericLabels(0, 59), "Minutes");
+        InitializeDropdown(startSecondsDropdown, GenerateNumericLabels(0, 59), "Seconds");
+
+        InitializeDropdown(endHoursDropdown, GenerateNumericLabels(0, 23), "Hours");
+        InitializeDropdown(endMinutesDropdown, GenerateNumericLabels(0, 59), "Minutes");
+        InitializeDropdown(endSecondsDropdown, GenerateNumericLabels(0, 59), "Seconds");
+
+        slotNumbersDropdown.ClearOptions();
+        slotNumbersDropdown.options.Add(new TMP_Dropdown.OptionData("Slot Numbers"));
 
         if (filterButton != null)
         {
@@ -30,36 +37,36 @@ public class UILoad : MonoBehaviour
             Debug.LogError("FilterButton is not assigned in the Inspector.");
         }
 
-        if (detailsDropdown != null)
-        {
-            detailsDropdown.onValueChanged.AddListener(OnDetailsDropdownChanged);
-        }
-        else
-        {
-            Debug.LogError("DetailsDropdown is not assigned in the Inspector.");
-        }
     }
 
-    void InitializeDropdown(TMP_Dropdown dropdown, int minValue, int maxValue)
-    {
-        dropdown.ClearOptions(); // Clear existing options
 
-        List<string> options = new List<string>();
+
+    void InitializeDropdown(TMP_Dropdown dropdown, List<string> options, string label)
+    {
+        dropdown.ClearOptions();
+        dropdown.options.Add(new TMP_Dropdown.OptionData(label));
+        dropdown.AddOptions(options);
+    }
+
+    List<string> GenerateNumericLabels(int minValue, int maxValue)
+    {
+        List<string> labels = new List<string>();
         for (int i = minValue; i <= maxValue; i++)
         {
-            options.Add(i.ToString("D2")); // Format as two digits
+            labels.Add(i.ToString("D2"));
         }
-        dropdown.AddOptions(options);
+        return labels;
     }
 
     void OnFilterButtonClicked()
     {
-        string selectedTime = $"{hoursDropdown.options[hoursDropdown.value].text}:{minutesDropdown.options[minutesDropdown.value].text}:{secondsDropdown.options[secondsDropdown.value].text}";
-        Debug.Log($"Filter button clicked. Selected time: {selectedTime}");
-        FilterDataByTime(selectedTime);
+        string startTime = $"{startHoursDropdown.options[startHoursDropdown.value].text}:{startMinutesDropdown.options[startMinutesDropdown.value].text}:{startSecondsDropdown.options[startSecondsDropdown.value].text}";
+        string endTime = $"{endHoursDropdown.options[endHoursDropdown.value].text}:{endMinutesDropdown.options[endMinutesDropdown.value].text}:{endSecondsDropdown.options[endSecondsDropdown.value].text}";
+        Debug.Log($"Filter button clicked. Start time: {startTime}, End time: {endTime}");
+        PopulateSlotNumbersDropdown(startTime, endTime);
     }
 
-    void FilterDataByTime(string time)
+    void PopulateSlotNumbersDropdown(string startTime, string endTime)
     {
         List<ApiRequest.ParkingSlot> parkingSlots = parkingSlotManager.GetParkingSlots();
 
@@ -69,62 +76,69 @@ public class UILoad : MonoBehaviour
             return;
         }
 
-        filteredSlots = new List<ApiRequest.ParkingSlot>();
+        List<string> slotNumbers = new List<string>();
+
         foreach (var slot in parkingSlots)
         {
             string slotTime = slot.timestamp.Split(' ')[1];
-            if (slotTime.Equals(time))
+            if (string.Compare(slotTime, startTime) >= 0 && string.Compare(slotTime, endTime) <= 0)
             {
-                filteredSlots.Add(slot);
+                slotNumbers.Add(slot.slot_number.ToString().Trim()); 
             }
         }
 
-        if (filteredSlots.Count > 0)
+        if (slotNumbers.Count == 0)
         {
-            PopulateDetailsDropdown(filteredSlots);
+            Debug.Log("No slot numbers found for the given time range.");
+            slotNumbersDropdown.ClearOptions();
+            slotNumbersDropdown.options.Add(new TMP_Dropdown.OptionData("Slot Numbers"));
         }
         else
         {
-            Debug.Log($"No slots found for time: {time}");
-            detailsDropdown.ClearOptions();
+            slotNumbersDropdown.ClearOptions();
+            slotNumbersDropdown.AddOptions(slotNumbers);
+            slotNumbersDropdown.onValueChanged.AddListener(OnSlotNumberSelected);
         }
     }
 
-    void PopulateDetailsDropdown(List<ApiRequest.ParkingSlot> slots)
+    void OnSlotNumberSelected(int index)
     {
-        detailsDropdown.ClearOptions();
-
-        List<string> options = new List<string>();
-        foreach (var slot in slots)
-        {
-            options.Add(slot.name); // Populate with names; you can choose other details if needed
-        }
-        detailsDropdown.AddOptions(options);
-
-        if (options.Count > 0)
-        {
-            detailsDropdown.value = 0; // Select the first item by default
-            OnDetailsDropdownChanged(0); // Trigger the display of the first item's details
-        }
+        string selectedSlotNumber = slotNumbersDropdown.options[slotNumbersDropdown.value].text.Trim(); 
+        Debug.Log($"Selected slot number: {selectedSlotNumber}");
+        PrintSlotDetails(selectedSlotNumber);
     }
 
-    void OnDetailsDropdownChanged(int index)
+    void PrintSlotDetails(string slotNumber)
     {
-        if (filteredSlots == null || index >= filteredSlots.Count)
+        List<ApiRequest.ParkingSlot> parkingSlots = parkingSlotManager.GetParkingSlots();
+
+        if (parkingSlots == null)
         {
-            Debug.LogError("Invalid selection in details dropdown.");
+            Debug.LogError("Parking slots data is null.");
             return;
         }
 
-        var selectedSlot = filteredSlots[index];
-        Debug.Log($"Selected Slot Details:\n" +
-                  $"Vehicle Number: {selectedSlot.vehicle_number}\n" +
-                  $"Car Model: {selectedSlot.car_model}\n" +
-                  $"In Time: {selectedSlot.in_time}\n" +
-                  $"Parked Time: {selectedSlot.parked_time}\n" +
-                  $"Out Time: {selectedSlot.out_time}\n" +
-                  $"Slot Number: {selectedSlot.slot_number}\n" +
-                  $"Apartment: {selectedSlot.apartment}\n" +
-                  $"Name: {selectedSlot.name}");
+        foreach (var slot in parkingSlots)
+        {
+            if (slot.slot_number == null)
+            {
+                Debug.Log("slot.slot_number is null");
+            }
+            else
+            {
+                string trimmedSlotNumber = slot.slot_number.Trim();
+                /*Debug.Log($"Comparing '{trimmedSlotNumber}' with '{slotNumber}'");*/
+
+                if (trimmedSlotNumber.Equals(slotNumber))
+                {
+                    Debug.Log($"Name: {slot.name}");
+                    Debug.Log($"Apartment: {slot.apartment}");
+                    Debug.Log($"Vehicle Number: {slot.vehicle_number}");
+                    return;
+                }
+            }
+        }
+
+        Debug.Log($"No details found for slot number: {slotNumber}");
     }
 }

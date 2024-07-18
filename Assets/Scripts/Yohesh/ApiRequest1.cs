@@ -17,7 +17,7 @@ public class ApiRequest: MonoBehaviour
         public string in_time;
         public float parked_time;
         public string out_time;
-        public int slot_number;
+        public string slot_number;
         public string apartment;
         public string name;
     }
