@@ -364,6 +364,7 @@
 "Assets/Scripts/Yohesh/EvenSpread.cs"
 "Assets/Scripts/Yohesh/FlyingEnemy.cs"
 "Assets/Scripts/Yohesh/GroundEnemy.cs"
+"Assets/Scripts/Yohesh/ParkingLotGenerator.cs"
 "Assets/Scripts/Yohesh/Player.cs"
 "Assets/Scripts/Yohesh/SpeedBoost.cs"
 "Assets/Scripts/Yohesh/UILoad.cs"

@@ -1,5 +1,5 @@
 sceneSetups:
-- path: Assets/Scenes/Yohesh/Parking1.unity
+- path: Assets/Scenes/Yohesh/main.unity
   isLoaded: 1
   isActive: 1
   isSubScene: 0
