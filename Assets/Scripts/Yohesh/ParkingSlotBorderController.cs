@@ -1,30 +1,43 @@
-using UnityEngine;
-using TMPro;
 using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
 
 public class ParkingSlotBorderController : MonoBehaviour
 {
-    public Renderer[] borderRenderers; 
-    public TextMeshPro vehicleInfoText; 
-    public Transform vehicleSpawnPoint; 
-    public Material availableMaterial; 
+    public Renderer[] borderRenderers;
+    public TextMeshPro vehicleInfoText;
+    public Transform vehicleSpawnPoint;
+    public Material availableMaterial;
     public Material occupiedMaterial;
 
-    public Vector3 vehicleRotation = Vector3.zero; 
-    public Vector3 fixedPositionOffset = Vector3.zero; 
+    public Vector3 vehicleRotation = Vector3.zero;
+    public Vector3 fixedPositionOffset = Vector3.zero;
 
-    private GameObject currentVehicle; 
+    private GameObject currentVehicle;
 
-   
-    private HashSet<string> fixedRotationModels = new HashSet<string>() //fixed car models rotation as its aligned at point
+    // Track availability and vehicle number
+    public bool IsAvailable { get; private set; } = true;
+    public string VehicleNumber { get; private set; }
+
+    private HashSet<string> fixedRotationModels = new HashSet<string>()
     {
         "van",
         "suv",
         "jeep"
     };
 
-    public void SetAvailability(bool available, string vehicleInfo = "")
+    // Getter for current vehicle
+    public GameObject GetCurrentVehicle()
     {
+        return currentVehicle;
+    }
+
+    // Method to set the availability of the parking slot and update material & vehicle info
+    public void SetAvailability(bool available, string vehicleInfo = "", string vehicleNumber = null)
+    {
+        IsAvailable = available;
+        VehicleNumber = vehicleNumber;
+
         Material selectedMaterial = available ? availableMaterial : occupiedMaterial;
 
         foreach (var borderRenderer in borderRenderers)
@@ -45,7 +58,7 @@ public class ParkingSlotBorderController : MonoBehaviour
 
         if (!available && !string.IsNullOrEmpty(vehicleInfo))
         {
-            
+            // Keep the vehicle if occupied
         }
         else
         {
@@ -59,23 +72,21 @@ public class ParkingSlotBorderController : MonoBehaviour
 
         if (vehiclePrefab != null && vehicleSpawnPoint != null)
         {
-            
             string carModel = vehiclePrefab.name.ToLower();
 
             if (fixedRotationModels.Contains(carModel))
             {
-                
                 Vector3 spawnPosition = vehicleSpawnPoint.position + fixedPositionOffset;
                 currentVehicle = Instantiate(vehiclePrefab, spawnPosition, Quaternion.identity);
             }
             else
             {
-                
                 currentVehicle = Instantiate(vehiclePrefab, vehicleSpawnPoint.position, Quaternion.Euler(vehicleRotation));
             }
         }
     }
 
+    // Remove the vehicle from the parking slot
     private void RemoveVehicle()
     {
         if (currentVehicle != null)
