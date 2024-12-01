@@ -181,41 +181,41 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 3682}
     - Class: 114
-      Script: {instanceID: 4018}
+      Script: {instanceID: 4020}
     - Class: 114
-      Script: {instanceID: 4150}
+      Script: {instanceID: 4152}
     - Class: 114
-      Script: {instanceID: 4242}
+      Script: {instanceID: 4244}
     - Class: 114
-      Script: {instanceID: 4256}
+      Script: {instanceID: 4258}
     - Class: 114
-      Script: {instanceID: 4514}
+      Script: {instanceID: 4516}
     - Class: 114
-      Script: {instanceID: 4802}
+      Script: {instanceID: 4804}
     - Class: 114
-      Script: {instanceID: 4846}
+      Script: {instanceID: 4848}
     - Class: 114
-      Script: {instanceID: 4954}
+      Script: {instanceID: 4956}
     - Class: 114
-      Script: {instanceID: 5060}
+      Script: {instanceID: 5062}
     - Class: 114
-      Script: {instanceID: 5124}
+      Script: {instanceID: 5126}
     - Class: 114
-      Script: {instanceID: 5246}
+      Script: {instanceID: 5248}
     - Class: 114
-      Script: {instanceID: 5818}
+      Script: {instanceID: 5820}
     - Class: 114
-      Script: {instanceID: 5972}
+      Script: {instanceID: 5974}
     - Class: 114
-      Script: {instanceID: 6292}
+      Script: {instanceID: 6294}
     - Class: 114
-      Script: {instanceID: 6302}
+      Script: {instanceID: 6304}
     - Class: 114
-      Script: {instanceID: 6702}
+      Script: {instanceID: 6704}
     - Class: 114
-      Script: {instanceID: 7342}
+      Script: {instanceID: 7344}
     - Class: 114
-      Script: {instanceID: 7362}
+      Script: {instanceID: 7364}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -270,15 +270,15 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 3228}
     - Class: 114
-      Script: {instanceID: 5246}
+      Script: {instanceID: 4000}
     - Class: 114
-      Script: {instanceID: 5818}
+      Script: {instanceID: 5248}
     - Class: 114
-      Script: {instanceID: 5972}
+      Script: {instanceID: 5820}
     - Class: 114
-      Script: {instanceID: 6292}
+      Script: {instanceID: 5974}
     - Class: 114
-      Script: {instanceID: 112750}
+      Script: {instanceID: 6294}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -766,6 +766,12 @@ ScriptsOnlyBuild:
     className: EnvMapAnimator
   - hash:
       serializedVersion: 2
+      Hash: 906fe8c02f5eb5d68d73e8e421b7c951
+    assemblyName: Assembly-CSharp
+    namespaceName: 
+    className: CarDetailsController
+  - hash:
+      serializedVersion: 2
       Hash: 665da785348a8806bf1524fe10742a60
     assemblyName: Assembly-CSharp
     namespaceName: TMPro.Examples
@@ -940,7 +946,7 @@ ScriptsOnlyBuild:
     className: TMP_TextInfoDebugTool
   - hash:
       serializedVersion: 2
-      Hash: c6b25e9b594a2fd55f1fbb7706470ad1
+      Hash: fdffbbf4fcc05984a247d81b9180a990
     assemblyName: Assembly-CSharp
     namespaceName: 
     className: UILoad1
@@ -1538,14 +1544,8 @@ ScriptsOnlyBuild:
     assemblyName: Unity.VisualScripting.Core
     namespaceName: Unity.VisualScripting
     className: UnityOnSliderValueChangedMessageListener
-  - hash:
-      serializedVersion: 2
-      Hash: 906fe8c02f5eb5d68d73e8e421b7c951
-    assemblyName: Assembly-CSharp
-    namespaceName: 
-    className: CarDetailsController
   platform: 19
   scenePathNames:
   - Assets/Scenes/Yohesh/MainParking.unity
   - Assets/Scenes/Yohesh/carDetails.unity
-  playerPath: C:/buildunity/srm_tasks.exe
+  playerPath: C:/car digital twin/srm_tasks.exe
