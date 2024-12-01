@@ -485,7 +485,7 @@ MonoBehaviour:
   hatchbackPrefab: {fileID: 362536360824942990, guid: 361527ca8f9866b4c9eebc2c8ef39655, type: 3}
   wagonPrefab: {fileID: 2186377400991818124, guid: f9705eda740e2af41b0e1f3585ca239e, type: 3}
   minivanPrefab: {fileID: 2950222119023871115, guid: b10f26c6436d75e4d9b2bdc9346c075c, type: 3}
-  vanPrefab: {fileID: 154144, guid: 2acf3729bc7663740a4b13c7b0129ad5, type: 3}
+  vanPrefab: {fileID: 2950222119023871115, guid: b10f26c6436d75e4d9b2bdc9346c075c, type: 3}
   jeepPrefab: {fileID: 7738280560958622290, guid: d9280091cbdee454cad739267adbeb29, type: 3}
   convertiblePrefab: {fileID: 3298504066990685385, guid: 15b96ef30d24f68438af6439afdb3fb3, type: 3}
 --- !u!4 &480852490

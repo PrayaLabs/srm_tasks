@@ -74,17 +74,21 @@ public class ParkingSlotBorderController : MonoBehaviour
         {
             string carModel = vehiclePrefab.name.ToLower();
 
+            // Apply a vertical offset to the spawn position to raise the vehicle
+            Vector3 spawnPosition = vehicleSpawnPoint.position + fixedPositionOffset;
+            spawnPosition.y += 0.2f; // Adjust this value to control how much higher the vehicle spawns (e.g., 1.0f)
+
             if (fixedRotationModels.Contains(carModel))
             {
-                Vector3 spawnPosition = vehicleSpawnPoint.position + fixedPositionOffset;
                 currentVehicle = Instantiate(vehiclePrefab, spawnPosition, Quaternion.identity);
             }
             else
             {
-                currentVehicle = Instantiate(vehiclePrefab, vehicleSpawnPoint.position, Quaternion.Euler(vehicleRotation));
+                currentVehicle = Instantiate(vehiclePrefab, spawnPosition, Quaternion.Euler(vehicleRotation));
             }
         }
     }
+
 
     // Remove the vehicle from the parking slot
     private void RemoveVehicle()

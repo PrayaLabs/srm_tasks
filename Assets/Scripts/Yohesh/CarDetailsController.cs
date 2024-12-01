@@ -7,8 +7,8 @@ using UnityEngine.UI;
 public class CarDetailsController : MonoBehaviour
 {
     public Transform carPrefabPlaceholder;
-    public TMP_Text carDetailsText;        
-    public Button backButton;             
+    public TMP_Text carDetailsText;
+    public Button backButton;
 
     // Updated vehicle prefabs
     public GameObject pickupPrefab;
@@ -33,11 +33,19 @@ public class CarDetailsController : MonoBehaviour
         if (!string.IsNullOrEmpty(jsonSlot))
         {
             ParkingSlotData selectedSlot = JsonUtility.FromJson<ParkingSlotData>(jsonSlot);
-            DisplayCarDetails(selectedSlot);
+            if (selectedSlot != null)
+            {
+                Debug.Log($"Selected slot loaded: Slot: {selectedSlot.SlotNumber}, Vehicle: {selectedSlot.VehicleNumber}, Model: {selectedSlot.CarModel}");
+                DisplayCarDetails(selectedSlot);
+            }
+            else
+            {
+                Debug.LogError("Failed to deserialize the selected slot data.");
+            }
         }
         else
         {
-            Debug.LogError("SelectedSlot data not found in PlayerPrefs.");
+            Debug.LogError("No SelectedSlot data found in PlayerPrefs.");
         }
 
         if (backButton != null)
@@ -86,18 +94,19 @@ public class CarDetailsController : MonoBehaviour
             return;
         }
 
-        
         string carModelKey = slot.CarModel.Replace("(Clone)", "").Trim().ToLower();
 
         if (vehiclePrefabs.ContainsKey(carModelKey))
         {
+            // Clear existing cars
             foreach (Transform child in carPrefabPlaceholder)
             {
                 Destroy(child.gameObject);
             }
 
+            // Instantiate the correct car prefab
             GameObject carPrefab = vehiclePrefabs[carModelKey];
-            Quaternion rotation = Quaternion.Euler(0f, 90f, 0f); 
+            Quaternion rotation = Quaternion.Euler(0f, 90f, 0f); // Adjust rotation as needed
             Instantiate(carPrefab, carPrefabPlaceholder.position, rotation, carPrefabPlaceholder);
         }
         else
@@ -120,8 +129,8 @@ public class CarDetailsController : MonoBehaviour
 [System.Serializable]
 public class ParkingSlotData
 {
-    public string Name;           
-    public string CarModel;        
-    public string VehicleNumber;   
-    public string SlotNumber;      
+    public string Name;
+    public string CarModel;
+    public string VehicleNumber;
+    public string SlotNumber;
 }

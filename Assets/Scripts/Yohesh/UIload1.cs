@@ -3,6 +3,9 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System;
+using System.Linq;
+using System.Collections;
 
 public class UILoad1 : MonoBehaviour
 {
@@ -70,7 +73,103 @@ public class UILoad1 : MonoBehaviour
         ToggleUIVisibility(searchInputUI, false);
         ToggleUIVisibility(freeSlotsPanel, false);
         ToggleUIVisibility(lockedSlotsPanel, false);
+
+        // Use a coroutine to show currently parked slots on start
+        StartCoroutine(WaitAndShowParkedSlots());
     }
+
+
+
+    private IEnumerator WaitAndShowParkedSlots()
+    {
+        // Ensure parkingSlotManager is initialized
+        if (parkingSlotManager == null)
+        {
+            Debug.LogError("Parking Slot Manager is not initialized.");
+            yield break;
+        }
+
+        Debug.Log("Waiting for parking slot data to be ready...");
+
+        // Wait for the data to be initialized (replace this condition with actual readiness check if needed)
+        while (parkingSlotManager.GetParkingSlots() == null || !parkingSlotManager.GetParkingSlots().Any())
+        {
+            yield return new WaitForSeconds(0.5f); // Check every 0.5 seconds
+        }
+
+        Debug.Log("Parking slot data is ready. Proceeding to show parked slots.");
+
+        ShowParkedSlotsOnStart();
+    }
+
+    private void ShowParkedSlotsOnStart()
+    {
+        // Ensure parkingSlotManager is not null
+        if (parkingSlotManager == null)
+        {
+            Debug.LogError("Parking Slot Manager is not initialized.");
+            return;
+        }
+
+        // Get current time and 10 minutes later
+        DateTime now = DateTime.Now;
+        DateTime tenMinutesLater = now.AddMinutes(10);
+
+        string currentTime = now.ToString("HH:mm:ss");
+        string futureTime = tenMinutesLater.ToString("HH:mm:ss");
+
+        Debug.Log($"Current Time: {currentTime}, Future Time: {futureTime}");
+
+        // Fetch parking slot data
+        var parkingSlotsData = parkingSlotManager.GetParkingSlots();
+
+        // Log and check if the data is null or empty
+        if (parkingSlotsData == null || !parkingSlotsData.Any())
+        {
+            Debug.LogError("No parking slots data available or empty list returned.");
+            return;
+        }
+
+        Debug.Log($"Total Parking Slots Retrieved: {parkingSlotsData.Count()}");
+
+        // Reset slot availability
+        foreach (var slot in parkingSlots)
+        {
+            slot.SetAvailability(true, null);
+        }
+
+        // Update based on time interval
+        foreach (var slotData in parkingSlotsData)
+        {
+            string slotTime = slotData.timestamp.Split(' ')[1].Trim(); // Extract time
+            //Debug.Log($"Slot Data Timestamp: {slotData.timestamp}, Extracted Time: {slotTime}");
+
+            // Compare times
+            if (string.Compare(slotTime, currentTime) >= 0 && string.Compare(slotTime, futureTime) <= 0)
+            {
+                foreach (var slot in parkingSlots)
+                {
+                    if (slot.gameObject.name.Replace("Slot_", "") == slotData.slot_number.Trim())
+                    {
+                        //Debug.Log($"Slot {slotData.slot_number} is occupied by {slotData.name}");
+                        slot.SetAvailability(false, $"Name: {slotData.name}\nCar Model: {slotData.car_model}\nVehicle: {slotData.vehicle_number}");
+
+                        if (vehiclePrefabs.TryGetValue(slotData.car_model.ToLower(), out GameObject prefab))
+                        {
+                            slot.SpawnSpecificVehicle(prefab);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Update UI panels
+        ShowDetailsPanels();
+
+    }
+
+
 
     private void InitializeVehiclePrefabs()
     {
@@ -183,12 +282,12 @@ public class UILoad1 : MonoBehaviour
 
         foreach (var slot in parkingSlots)
         {
-            slot.SetAvailability(true, null); 
+            slot.SetAvailability(true, null);
         }
 
         foreach (var slotData in parkingSlotsData)
         {
-            string slotTime = slotData.timestamp.Split(' ')[1]; 
+            string slotTime = slotData.timestamp.Split(' ')[1];
 
             if (string.Compare(slotTime, startTime) >= 0 && string.Compare(slotTime, endTime) <= 0)
             {
@@ -220,7 +319,7 @@ public class UILoad1 : MonoBehaviour
             AddSlotToPanel(targetContent, slot.gameObject.name);
         }
 
-       
+
     }
 
     private void AddSlotToPanel(Transform content, string slotName)
@@ -244,7 +343,8 @@ public class UILoad1 : MonoBehaviour
     }
     private void OnSceneButtonClicked()
     {
-        string vehicleNumber = searchInputField.text.Trim(); 
+        // Retrieve vehicle number from the input field
+        string vehicleNumber = searchInputField.text.Trim();
 
         if (string.IsNullOrEmpty(vehicleNumber))
         {
@@ -252,11 +352,27 @@ public class UILoad1 : MonoBehaviour
             return;
         }
 
-        // Get the selected time range from the dropdowns
-        string startTime = GetSelectedTime(startHoursDropdown, startMinutesDropdown, startSecondsDropdown);
-        string endTime = GetSelectedTime(endHoursDropdown, endMinutesDropdown, endSecondsDropdown);
+        // Check if we are using initial real-time values or dropdown values
+        string startTime, endTime;
+        if (startHoursDropdown.value == 0 && startMinutesDropdown.value == 0 && startSecondsDropdown.value == 0 &&
+            endHoursDropdown.value == 0 && endMinutesDropdown.value == 0 && endSecondsDropdown.value == 0)
+        {
+            // Use real-time logic
+            DateTime now = DateTime.Now;
+            DateTime tenMinutesLater = now.AddMinutes(10);
+            startTime = now.ToString("HH:mm:ss");
+            endTime = tenMinutesLater.ToString("HH:mm:ss");
+            Debug.Log("Using real-time update for SceneButton functionality.");
+        }
+        else
+        {
+            // Use dropdown-selected values
+            startTime = GetSelectedTime(startHoursDropdown, startMinutesDropdown, startSecondsDropdown);
+            endTime = GetSelectedTime(endHoursDropdown, endMinutesDropdown, endSecondsDropdown);
+            Debug.Log("Using dropdown values for SceneButton functionality.");
+        }
 
-        
+        // Fetch parking slot data
         var parkingSlotsData = parkingSlotManager.GetParkingSlots();
 
         if (parkingSlotsData == null)
@@ -266,65 +382,51 @@ public class UILoad1 : MonoBehaviour
         }
 
         ParkingSlotBorderController foundSlot = null;
-        bool isLocked = false;
-        ParkingSlotData selectedSlotData = null; 
+        ParkingSlotData selectedSlotData = null;
 
         foreach (var slot in parkingSlots)
         {
-            Debug.Log($"Checking Slot: {slot.gameObject.name}");
-
             foreach (var slotData in parkingSlotsData)
             {
-                
                 if (slotData.slot_number == slot.gameObject.name.Replace("Slot_", ""))
                 {
-                    Debug.Log($"Slot {slot.gameObject.name} found in data, checking availability.");
+                    string slotTime = slotData.timestamp.Split(' ')[1]; // Extract time (HH:MM:SS)
 
-                    
-                    if (!slot.IsAvailable && slotData.vehicle_number == vehicleNumber)
+                    if (string.Compare(slotTime, startTime) >= 0 && string.Compare(slotTime, endTime) <= 0 &&
+                        slotData.vehicle_number == vehicleNumber)
                     {
-                        string slotTime = slotData.timestamp.Split(' ')[1]; // Extract time (HH:MM:SS)
+                        Debug.Log($"Vehicle {vehicleNumber} found in slot {slot.gameObject.name}.");
+                        foundSlot = slot;
 
-                        
-                        if (string.Compare(slotTime, startTime) >= 0 && string.Compare(slotTime, endTime) <= 0)
+                        selectedSlotData = new ParkingSlotData
                         {
-                            Debug.Log($"Vehicle {vehicleNumber} found in locked slot {slot.gameObject.name} within the time range.");
-                            foundSlot = slot;
-                            isLocked = true;
+                            Name = slotData.name,
+                            CarModel = slotData.car_model,
+                            VehicleNumber = slotData.vehicle_number,
+                            SlotNumber = slotData.slot_number,
+                        };
 
-
-                            selectedSlotData = new ParkingSlotData
-                            {
-                                Name = slotData.name,             
-                                CarModel = slotData.car_model,         
-                                VehicleNumber = slotData.vehicle_number, 
-                                SlotNumber = slotData.slot_number,   
-                            };
-
-                            break; // Exit inner loop once a match is found
-                        }
+                        break;
                     }
                 }
             }
-
-            
-            if (isLocked) break;
         }
 
-        // Proceed to CarDetails if a locked slot with the vehicle number is found and within the time range
-        if (isLocked && selectedSlotData != null)
+        if (foundSlot != null)
         {
-            Debug.Log("Vehicle found in locked slot within time range. Proceeding to CarDetails.");
+            Debug.Log($"Slot {selectedSlotData.SlotNumber} selected for vehicle {selectedSlotData.VehicleNumber}.");
 
+            // Save the selected slot data to PlayerPrefs
             string jsonSlotData = JsonUtility.ToJson(selectedSlotData);
             PlayerPrefs.SetString("SelectedSlot", jsonSlotData);
+            PlayerPrefs.Save();
 
-            // Load the CarDetails scene
+            // Load CarDetails scene
             SceneManager.LoadScene("CarDetails");
         }
         else
         {
-            Debug.Log("Vehicle not found in locked slots within the selected time range.");
+            Debug.Log($"Vehicle {vehicleNumber} not found in any slot during the selected time range.");
         }
     }
 
